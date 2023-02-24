@@ -1,0 +1,196 @@
+api: 1.0.0
+package: APICoreUsers
+
+service:
+  description: Users is an object representing a signed up user of the Emre platform.
+  endpoints:
+    CreateUser:
+      description: Creates a requested users.
+      path: /v1/users
+      method: POST
+      request:
+        body:
+          RequestId:
+            description: The unique idempotency identifier of the request.
+            kind: string
+            uuid: true
+            prefix: request_
+          User:
+            description: The user to be created.
+            kind: message
+            fields:
+              FirstName:
+                description: The first name of the user.
+                kind: string
+                minimum: 1
+              LastName:
+                description: The last name of the user.
+                kind: string
+                minimum: 1
+              PhoneNumber:
+                description: The phone number of the user.
+                kind: string
+                minimum: 1
+              EmailAddress:
+                description: The email address of the user.
+                kind: string
+                minimum: 1
+      response:
+        code: 201
+        body:
+          User:
+            description: The user that has been created.
+            kind: message
+            type: User
+      errors:
+        - type: ValidationError
+          package: ".lib.errors"
+        - type: UserAlreadyExistsError
+
+    UpdateUser:
+      description: Updates a requested users by setting the values of the parameters passed. Any parameters not provided are left unchanged.
+      path: /v1/users/{id}
+      method: PATCH
+      request:
+        param:
+          Id:
+            description: The unique identifier of the user to update.
+            kind: string
+            uuid: true
+            prefix: user_
+        body:
+          RequestId:
+            description: The unique idempotency identifier of the request.
+            kind: string
+            prefix: request_
+            uuid: true
+          User:
+            description: The user to be updated.
+            kind: message
+            fields:
+              FirstName:
+                description: The first name of the user.
+                kind: string
+                nullable: true
+                minimum: 1
+              LastName:
+                description: The last name of the user.
+                kind: string
+                nullable: true
+                minimum: 1
+              PhoneNumber:
+                description: The phone number of the user.
+                kind: string
+                nullable: true
+                minimum: 1
+      response:
+        code: 200
+        body:
+          User:
+            description: The user that has been updated.
+            kind: message
+            type: User
+      errors:
+        - type: ValidationError
+          package: ".lib.errors"
+        - type: UserNotFoundError
+
+    DeleteUser:
+      description: Deletes a requested users.
+      path: /v1/users/{id}
+      method: DELETE
+      request:
+        param:
+          Id:
+            description: The unique identifier of the user to delete.
+            kind: string
+            uuid: true
+            prefix: user_
+      response:
+        code: 204
+      errors:
+        - type: ValidationError
+          package: ".lib.errors"
+        - type: UserNotFoundError
+
+    GetUser:
+      description: Returns a requested users.
+      path: /v1/users/{id}
+      method: GET
+      request:
+        param:
+          Id:
+            description: The unique identifier of the user to retrieve.
+            kind: string
+            uuid: true
+            prefix: user_
+      response:
+        code: 200
+        body:
+          User:
+            description: The user that has been retrieved.
+            kind: message
+            type: User
+      errors:
+        - type: ValidationError
+          package: ".lib.errors"
+        - type: UserNotFoundError
+
+    ListUsers:
+      description: Returns a list of all users which match the given filters. The response may contain fewer users than the requested limit.
+      path: /v1/users
+      method: GET
+      request:
+        query:
+          Limit:
+            description: The number of users to retrieve.
+            kind: uint64
+            minimum: 1
+            maximum: 100
+          Offset:
+            description: The number to offset the retrieval by.
+            kind: uint64
+            nullable: true
+      response:
+        code: 200
+        body:
+          Users:
+            description: The array of users that have been retrieved.
+            kind: array
+            items:
+              kind: message
+              type: User
+      errors:
+        - type: ValidationError
+          package: ".lib.errors"
+
+    BatchGetUsers:
+      description: Returns a map of the requested users keyed by their unique identifiers.
+      path: /v1/users:batchGet
+      method: GET
+      request:
+        query:
+          Ids:
+            description: The unique identifier of the users to retrieve.
+            kind: array
+            minimum: 1
+            maximum: 100
+            items:
+              kind: string
+              uuid: true
+              prefix: user_
+      response:
+        code: 200
+        body:
+          Users:
+            description: A map of users keyed by their unique identifiers that have been retrieved.
+            kind: map
+            keys:
+              kind: string
+            values:
+              kind: message
+              type: User
+      errors:
+        - type: ValidationError
+          package: ".lib.errors"
+        - type: UsersNotFoundError
